@@ -1,0 +1,82 @@
+﻿
+
+
+/*OMA KOODI*/
+
+body {
+    background-color: #FFFFFF;
+    margin: 0px;
+    padding: 0px;
+    color: white;
+}
+
+#header h1 {
+    color: #585858;
+    font-size: 6em;
+}
+
+#form1 {
+    margin: 0px;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
+#Button1 {
+    padding: 5px;
+    margin: 5px;
+}
+
+#infopanel {
+    padding: 20px;
+    margin: 25px;
+}
+
+.textpadding {
+    padding-left: 30px;
+}
+
+#Label1 {
+    color: black;
+}
+
+#GridView2 ImageFiedl {
+    margin: 0px;
+    padding: 0px;
+}
+
+#GridView2 td {
+    height: 40px;
+    padding: 10px;
+}
+
+
+
+@media print {
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    #header h1 {
+        font-size: 2em;
+    }
+
+
+    form3 {
+        padding: 0;
+        margin: 0;
+    }
+
+
+    .noprint {
+        display: none !important;
+    }
+
+    img {
+        display: none !important;
+    }
+
+    td {
+        font-size: 0.85em;
+    }
+}
