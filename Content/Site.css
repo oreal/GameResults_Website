@@ -1,4 +1,4 @@
-﻿
+
 
 
 /*OMA KOODI*/
@@ -47,6 +47,10 @@ body {
 #GridView2 td {
     height: 40px;
     padding: 10px;
+}
+
+#infopanel {
+color: black;
 }
 
 
