@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,6 @@ public partial class SiteMaster : MasterPage
     private const string AntiXsrfTokenKey = "__AntiXsrfToken";
     private const string AntiXsrfUserNameKey = "__AntiXsrfUserName";
     private string _antiXsrfTokenValue;
-
 
     private List<JObject> getAllGames()
     {
@@ -48,7 +47,7 @@ public partial class SiteMaster : MasterPage
         DateTime loppuaika = DateTime.Now;
         String[] aika = TextBox1.Text.Split('-', '/'); // vuosi-päivä-kuukausi
         String[] aika2 = TextBox2.Text.Split('-', '/');
-        if (aika.Length == 3) alkuaika = new DateTime(int.Parse(aika[0]), int.Parse(aika[1]), int.Parse(aika[2]), 0, 0,0);
+        if (aika.Length == 3) alkuaika = new DateTime(int.Parse(aika[0]), int.Parse(aika[1]), int.Parse(aika[2]), 0, 0,0); 
         if (aika2.Length == 3) loppuaika = new DateTime(int.Parse(aika2[0]), int.Parse(aika2[1]), int.Parse(aika2[2]), 23, 59, 59);
 
         getGameAtTime(alkuaika, loppuaika);
@@ -63,8 +62,7 @@ public partial class SiteMaster : MasterPage
 
     private object GetData(DateTime alkuaika, DateTime loppuaika)
     {
-      //  This method creates a DataTable with four rows.  Each row has the
-      //   following schema:
+
       //         pvm            string      12.4.2015(alkuajan ja loppuajan välillä)
       //         aika           string      14.00
       //         logo           string(IMAGE)
@@ -81,16 +79,18 @@ public partial class SiteMaster : MasterPage
         dt.Columns.Add(new DataColumn("logo1", typeof(string)));
         dt.Columns.Add(new DataColumn("tiimi1", typeof(string)));
 
+        dt.Columns.Add(new DataColumn("tulos", typeof(string)));
+
         dt.Columns.Add(new DataColumn("logo2", typeof(string)));
         dt.Columns.Add(new DataColumn("tiimi2", typeof(string)));
 
-        dt.Columns.Add(new DataColumn("tulos", typeof(string)));
+
         DataRow dr = dt.NewRow();
 
         List<JObject> games = getAllGames();
-
+        bool olikoRiveja = false;
         string apuDate = "";
-        foreach (var item in games)  // jokainen peli
+        foreach (var item in games)
         {
             List<string> rivilista = listaaTiedot(item, alkuaika, loppuaika); // merkkijonolistana kaikki yhden rivin merkkijonot
             if (rivilista.Count != 0)
@@ -104,14 +104,18 @@ public partial class SiteMaster : MasterPage
                 rivilista[0] = "";
                 dr = createRecords(dt, rivilista);
                 dt.Rows.Add(dr);
+                olikoRiveja = true;
             }
-            else
-            {
-                Label info = new Label();
-                info.Attributes.Add("id", "infopanel");
-                info.Text += "Yhtään ottelua ei löytynyt annetulla aikavälillä.";
-                form1.Controls.Add(info);
-            }
+
+         
+            
+        }
+        if (!olikoRiveja)
+        {
+            Label info = new Label();
+            info.Attributes.Add("id", "infopanel");
+            info.Text = "Yhtään ottelua ei löytynyt annetulla aikavälillä.";
+            form1.Controls.Add(info);
         }
         return dt;
     }
@@ -120,7 +124,7 @@ public partial class SiteMaster : MasterPage
     {
         List<string> ls = new List<string>();
 
-        JToken itemJ = Hae("MatchDate", item);
+        JToken itemJ = item.GetValue("MatchDate");
         // 4.12.2015 12:12:12      
         // 4.12.2015 1.30.00 AM   
         bool onko12tuntia = itemJ.ToString().Contains("M");
@@ -138,7 +142,6 @@ public partial class SiteMaster : MasterPage
         string time = t[1].Substring(0, 5); // 11.12 tai 11.00 tai 1.30:
         if (time.Contains(":")) time = time.Substring(0, 4);
 
-
         // 4.12.2015 12:12:12      
         //  4/12/2015 2:00:00 
         DateTime aika;
@@ -148,14 +151,6 @@ public partial class SiteMaster : MasterPage
         catch (System.ArgumentOutOfRangeException e) {
             aika = new DateTime(int.Parse(datesplit[2]), int.Parse(datesplit[1]), int.Parse(datesplit[0]), int.Parse(kellonaika[0]), int.Parse(kellonaika[1]), int.Parse(kellonaika[2]));
         }
-
-        //hh1.InnerText += "datetimemuoto: " + aika.ToString() + "<<";
-        //hh1.InnerText += "alkuaika:" + alkuaika.ToString() + "<<";
-        //hh1.InnerText += "loppuaika" + loppuaika.ToString() + "<<";
-        //hh1.InnerText += "aika" + aika.ToString() + "<<";
-        //hh1.InnerText += "alkuvertaus:" + alkuaika.CompareTo(aika).ToString() + "<<";
-        //hh1.InnerText += "loppuvertaus:" + loppuaika.CompareTo(aika).ToString() + "<<";
-        //hh1.InnerText += "yritys" + aika.ToString("HH:mm") + "<<";
 
         if (alkuaika.CompareTo(aika) <= 0 && loppuaika.CompareTo(aika) >= 0)
          {
@@ -177,31 +172,21 @@ public partial class SiteMaster : MasterPage
 
             ls.Add(kellonaika[0] +":"+kellonaika[1]);  // aika ->  hh:mm
 
-             JToken t1p = item.GetValue("HomeTeam");
-             JToken logoJ = t1p.SelectToken("LogoUrl");
-             string logo1 = logoJ.ToString();
-             ls.Add(logo1);
+            string logo1 = item.GetValue("HomeTeam").SelectToken("LogoUrl").ToString();
+            ls.Add(logo1);
 
-             JToken a2 = item.GetValue("HomeTeam");
-             JToken team1 = a2.SelectToken("Name");
-             string tiimi1 = team1.ToString();
-             ls.Add(tiimi1);
+            string tiimi1 = item.GetValue("HomeTeam").SelectToken("Name").ToString();
+            ls.Add(tiimi1);
 
-             JToken a4 = item.GetValue("HomeGoals");
-             JToken a5 = item.GetValue("AwayGoals");
-             ls.Add(a4 + " - " + a5);
+            ls.Add(item.GetValue("HomeGoals") + " - " + item.GetValue("AwayGoals"));
 
-             JToken t1p2 = item.GetValue("AwayTeam");
-             JToken logoJ2 = t1p2.SelectToken("LogoUrl");
-             string logo2 = logoJ2.ToString();
-             ls.Add(logo2);
+            string logo2 = item.GetValue("AwayTeam").SelectToken("LogoUrl").ToString();
+            ls.Add(logo2);
 
-             JToken a3 = item.GetValue("AwayTeam");
-             JToken team2 = a3.SelectToken("Name");
-             string tiimi2 = team2.ToString();
-             ls.Add(tiimi2);
+            string tiimi2 = item.GetValue("AwayTeam").SelectToken("Name").ToString();
+            ls.Add(tiimi2);
 
-             return ls;
+            return ls;
         }
         return new List<string>();
     }
@@ -211,26 +196,16 @@ public partial class SiteMaster : MasterPage
         GridView2.Controls.Clear();
     }
 
-    private JToken Hae(string v, JObject item)
-    {
-        return item.GetValue(v);
-    }
-
     private DataRow createRecords(DataTable dt, List<string> rivilista)
     {
         DataRow dr = dt.NewRow();
-        dr[0] = rivilista[0];
-        dr[1] = rivilista[1];
-        dr[2] = rivilista[2];
-        dr[3] = rivilista[3];
-        dr["tulos"] = rivilista[4]; // TODO: miksi näin? estää silmukan. 
-        dr[4] = rivilista[5];
-        dr[5] = rivilista[6];
+        for(int i = 0; i<rivilista.Count;i++) dr[i] = rivilista[i];
         return dr;
     }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        gamelist();
+      if( GridView2.Rows.Count == 0) 
+      gamelist();
     }
 }
